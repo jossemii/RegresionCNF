@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+import "onnx.proto";
+import "hyweb.proto";
+import "solvers_dataset.proto";
+
+// Solver
+message Interpretation {
+    repeated int32 variable = 1;
+    optional bool satisfiable = 2; // Para decir que es insatisfactible se puede pasar únicamente
+        // la lista vacía o bien marcar el booleano en falso. En caso de ser satisfactible se puede
+        // pasar la interpretación y no hace falta pasar el booleano en true. Lo que no tendría sentido
+        // sería pasar una interpretación con una lista de variables y el booleano en falso, en ese caso
+        // el mensaje sería inválido.
+}
+
+
+// Random
+message Clause {
+    repeated int32 literal = 1;
+}
+
+message Cnf {
+    repeated Clause clause = 1;
+}
+
+message Empty {}
+
+service Random {
+    rpc RandomCnf(Empty) returns (Cnf) {}
+}
+
+message File {
+    string file = 1;
+}
+
+service Solver {
+    rpc StartTrain ( Empty) returns (Empty) {}
+    rpc StopTrain ( Empty) returns (Empty) {}
+    rpc GetTensor ( Empty) returns (stream tensor_onnx.ONNX) {}
+    rpc UploadSolver ( hyweb.Service) returns (Empty) {}
+    rpc StreamLogs (Empty) returns (stream File){}
+    rpc Solve(Cnf) returns (Interpretation) {}
+    rpc AddTensor( tensor_onnx.ONNX) returns (Empty) {}
+
+    // Hasta que se implemente AddTensor.
+    rpc GetDataSet( Empty) returns (dataset.DataSet) {}
+    rpc AddDataSet( dataset.DataSet) returns (Empty) {}
+}

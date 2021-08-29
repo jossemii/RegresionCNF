@@ -1,0 +1,24 @@
+syntax = "proto3";
+import "hyweb.proto";
+
+package dataset;
+
+message Data {
+    float score = 1;
+    int32 index = 2;
+}
+
+message SolverWithConfig {
+    hyweb.Service definition = 1;
+    map<string, hyweb.Any> enviroment_variables = 2;
+}
+
+message DataSetInstance {
+    SolverWithConfig solver = 1;
+    map<string, Data> data = 2;
+}
+
+message DataSet {
+    // identifica el Solver con una configuracion determinada.( hash.value.hex() ) de sha3-256
+    map<string, DataSetInstance> data = 1;
+}
