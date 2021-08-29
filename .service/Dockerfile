@@ -12,5 +12,5 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 
 RUN mkdir /regresioncnf && cd /regresioncnf && \
   apt-get update && apt-get -y install git && \
-  git clone --branch proto https://github.com/josemibnf/RegresionCNF.git && mv RegresionCNF/* . && \
+  git clone --branch proto https://github.com/jossemii/RegresionCNF.git && mv RegresionCNF/* . && \
   mv RegresionCNF/.service/ . && rm -rf RegresionCNF  && rm -rf .git
