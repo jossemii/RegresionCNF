@@ -5,6 +5,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import Int64TensorType
 import solvers_dataset_pb2, onnx_pb2, hyweb_pb2
+logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 LOGGER = lambda message: logging.getLogger().debug(message + '\n')
 
 # Update the tensor with the dataset.

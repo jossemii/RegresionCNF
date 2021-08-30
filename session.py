@@ -86,6 +86,7 @@ class Session(metaclass=Singleton):
                 ).hex()
             self.LOGGER('Check if dataset was modified ' + actual_hash + data_set_hash)
             if actual_hash != data_set_hash:
+                self.LOGGER('Perform other regresion.')
                 data_set_hash = actual_hash
                 
                 # Se evita crear condiciones de carrera.
