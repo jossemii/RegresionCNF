@@ -1,10 +1,11 @@
+import logging
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import Int64TensorType
-import api_pb2, solvers_dataset_pb2
-from start import LOGGER
+import solvers_dataset_pb2, onnx_pb2, hyweb_pb2
+LOGGER = lambda message: logging.getLogger().debug(message + '\n')
 
 # Update the tensor with the dataset.
 def regression_with_degree(degree: int, input: np.array, output: np.array):
@@ -51,9 +52,9 @@ def solver_regression(solver: dict, MAX_DEGREE):
         ]
     )
 
-def iterate_regression(TENSOR_SPECIFICATION: api_pb2.hyweb__pb2.Tensor, MAX_DEGREE: int, data_set: solvers_dataset_pb2.DataSet) -> api_pb2.onnx__pb2.ONNX:
+def iterate_regression(TENSOR_SPECIFICATION: hyweb_pb2.Tensor, MAX_DEGREE: int, data_set: solvers_dataset_pb2.DataSet) -> onnx_pb2.ONNX:
     LOGGER('ITERATING REGRESSION')
-    onnx = api_pb2.onnx__pb2.ONNX()
+    onnx = onnx_pb2.ONNX()
     onnx.specification.CopyFrom(TENSOR_SPECIFICATION)
 
     # Make regression for each solver.
@@ -62,7 +63,7 @@ def iterate_regression(TENSOR_SPECIFICATION: api_pb2.hyweb__pb2.Tensor, MAX_DEGR
         if len(solver_data.data) < 5: break
         LOGGER('SOLVER --> ' + str(solver_data.solver.definition))
         # ONNXTensor
-        tensor = api_pb2.onnx__pb2.ONNX.ONNXTensor()
+        tensor = onnx_pb2.ONNX.ONNXTensor()
         tensor.element.value = solver_data.solver.SerializeToString()
         # We need to serialize and parse the buffer because the clases are provided by different proto files.
         #  It is because import the onnx-ml.proto on skl2onnx lib to our onnx.proto was impossible.

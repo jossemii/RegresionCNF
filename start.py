@@ -18,7 +18,7 @@ SHA3_256 = lambda value: "" if value is None else hashlib.sha3_256(value).digest
 if __name__ == "__main__":
 
     from time import sleep
-    import grpc, api_pb2, api_pb2_grpc
+    import grpc, regresion_pb2, regresion_pb2_grpc
     from concurrent import futures
     
     # Read __config__ file.
@@ -35,14 +35,19 @@ if __name__ == "__main__":
             )    
     """
       
-    _regresion = Session(ENVS=ENVS)
+    _regresion = Session(
+        ENVS = ENVS, 
+        DIR = DIR, 
+        LOGGER = LOGGER, 
+        SHA3_256 = SHA3_256
+        )
 
-    class RegresionServicer(api_pb2_grpc.SolverServicer):
+    class RegresionServicer(regresion_pb2_grpc.RegresionServicer):
 
         def StreamLogs(self, request, context):
             with open('app.log') as file:
                 while True:
-                    f = api_pb2.File()
+                    f = regresion_pb2.File()
                     f.file = file.read()
                     yield f
                     sleep(1)
@@ -58,13 +63,13 @@ if __name__ == "__main__":
 
         def AddDataSet(self, request, context):
             _regresion.add_data(new_data_set = request)
-            return api_pb2.Empty()
+            return regresion_pb2.Empty()
 
 
     # create a gRPC server
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
 
-    api_pb2_grpc.add_RegresionServicer_to_server(
+    regresion_pb2_grpc.add_RegresionServicer_to_server(
         RegresionServicer(), server)
 
     # listen on port 9999

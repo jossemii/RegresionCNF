@@ -2,14 +2,15 @@ from singleton import Singleton
 import threading
 from time import sleep
 from regresion import iterate_regression
-import api_pb2, solvers_dataset_pb2
+import solvers_dataset_pb2, onnx_pb2, hyweb_pb2
 from threading import Thread, get_ident
-from start import DIR, LOGGER, SHA3_256
-
 
 class Session(metaclass=Singleton):
 
-    def __init__(self, ENVS) -> None:
+    def __init__(self, ENVS, DIR, LOGGER, SHA3_256) -> None:
+        self.DIR = DIR
+        self.LOGGER = LOGGER
+        self.SHA3_256 = SHA3_256
         self.lock = threading.Lock()
         self.data_set = solvers_dataset_pb2.DataSet()
         self.onnx = None
@@ -33,10 +34,10 @@ class Session(metaclass=Singleton):
             else:
                 self.data_set.data[hash].CopyFrom(solver_data)
         self.lock.release()
-        LOGGER('Dataset updated. ')
+        self.LOGGER('Dataset updated. ')
 
     # Return the tensor for the grpc stream method.
-    def get_tensor(self) -> api_pb2.onnx__pb2.ONNX:
+    def get_tensor(self) -> onnx_pb2.ONNX:
         # No hay condiciones de carrera aunque lo reescriba en ese momento.
         return self.onnx
     
@@ -52,38 +53,38 @@ class Session(metaclass=Singleton):
 
         def generate_tensor_spec():
             # Performance
-            p = api_pb2.hyweb__pb2.Tensor.Index()
+            p = hyweb_pb2.Tensor.Index()
             p.id = "score"
             p.hashtag.tag.extend(["performance"])
             # Number clauses
-            c = api_pb2.hyweb__pb2.Tensor.Index()
+            c = hyweb_pb2.Tensor.Index()
             c.id = "clauses"
             c.hashtag.tag.extend(["number of clauses"])
             # Number of literals
-            l = api_pb2.hyweb__pb2.Tensor.Index()
+            l = hyweb_pb2.Tensor.Index()
             l.id = "literals"
             l.hashtag.tag.extend(["number of literals"])
             # Solver services
-            s = api_pb2.hyweb__pb2.Tensor.Index()
+            s = hyweb_pb2.Tensor.Index()
             s.id = "solver"
             s.hashtag.tag.extend(["SATsolver"])
-            with open(DIR + '.service/solver.field', 'rb') as f:
+            with open(self.DIR + '.service/solver.field', 'rb') as f:
                 s.field.ParseFromString(f.read())
 
-            tensor_specification = api_pb2.hyweb__pb2.Tensor()
+            tensor_specification = hyweb_pb2.Tensor()
             tensor_specification.index.extend([c, l, s, p])
             tensor_specification.rank = 3
             return tensor_specification
 
-        LOGGER('INIT REGRESSION THREAD '+ str(get_ident()))
+        self.LOGGER('INIT REGRESSION THREAD '+ str(get_ident()))
         while True:
             sleep(time_for_each_regression_loop)
 
             # Obtiene una hash del dataset para saber si se han añadido datos.
-            actual_hash = SHA3_256(
+            actual_hash = self.SHA3_256(
                 value = self.data_set.SerializeToString()
                 ).hex()
-            LOGGER('Check if dataset was modified ' + actual_hash + data_set_hash)
+            self.LOGGER('Check if dataset was modified ' + actual_hash + data_set_hash)
             if actual_hash != data_set_hash:
                 data_set_hash = actual_hash
                 
@@ -93,7 +94,7 @@ class Session(metaclass=Singleton):
                 data_set.CopyFrom(self.data_set)
                 self.lock.release()
 
-                if not self.onnx: self.onnx = api_pb2.onnx__pb2.ONNX()
+                if not self.onnx: self.onnx = onnx_pb2.ONNX()
                 self.onnx.CopyFrom(
                     iterate_regression(
                         MAX_DEGREE=max_degree,
