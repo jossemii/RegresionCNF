@@ -1,3 +1,4 @@
+from types import LambdaType
 from singleton import Singleton
 import threading
 from time import sleep
@@ -7,7 +8,7 @@ from threading import Thread, get_ident
 
 class Session(metaclass=Singleton):
 
-    def __init__(self, ENVS, DIR, LOGGER, SHA3_256) -> None:
+    def __init__(self, ENVS: dict, DIR: str, LOGGER: LambdaType, SHA3_256: LambdaType) -> None:
         self.DIR = DIR
         self.LOGGER = LOGGER
         self.SHA3_256 = SHA3_256
@@ -45,7 +46,7 @@ class Session(metaclass=Singleton):
     def get_data_set(self) -> solvers_dataset_pb2.DataSet:
         return self.data_set
 
-    def init(self, ENVS):
+    def init(self, ENVS: dict):
         # set used envs on variables.
         time_for_each_regression_loop = ENVS['TIME_FOR_EACH_REGRESSION_LOOP']
         max_degree = ENVS['MAX_REGRESSION_DEGREE']
@@ -96,8 +97,10 @@ class Session(metaclass=Singleton):
                 self.lock.release()
 
                 if not self.onnx: self.onnx = onnx_pb2.ONNX()
+                self.LOGGER('..........')
                 self.onnx.CopyFrom(
                     iterate_regression(
+                        LOGGER = self.LOGGER,
                         MAX_DEGREE=max_degree,
                         TENSOR_SPECIFICATION=generate_tensor_spec(),
                         data_set = data_set

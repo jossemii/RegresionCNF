@@ -1,12 +1,10 @@
-import logging
+from types import LambdaType
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import Int64TensorType
 import solvers_dataset_pb2, onnx_pb2, hyweb_pb2
-logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
-LOGGER = lambda message: logging.getLogger().debug(message + '\n')
 
 # Update the tensor with the dataset.
 def regression_with_degree(degree: int, input: np.array, output: np.array):
@@ -20,7 +18,7 @@ def regression_with_degree(degree: int, input: np.array, output: np.array):
         'model': model
     }
 
-def solver_regression(solver: dict, MAX_DEGREE):
+def solver_regression(solver: dict, MAX_DEGREE, LOGGER: LambdaType):
     # Get input variables. Num of cnf variables and Num of cnf clauses.
     # num_clauses : num_literals
     input = np.array(
@@ -53,7 +51,7 @@ def solver_regression(solver: dict, MAX_DEGREE):
         ]
     )
 
-def iterate_regression(TENSOR_SPECIFICATION: hyweb_pb2.Tensor, MAX_DEGREE: int, data_set: solvers_dataset_pb2.DataSet) -> onnx_pb2.ONNX:
+def iterate_regression(TENSOR_SPECIFICATION: hyweb_pb2.Tensor, MAX_DEGREE: int, data_set: solvers_dataset_pb2.DataSet, LOGGER: LambdaType) -> onnx_pb2.ONNX:
     LOGGER('ITERATING REGRESSION')
     onnx = onnx_pb2.ONNX()
     onnx.specification.CopyFrom(TENSOR_SPECIFICATION)
@@ -71,7 +69,11 @@ def iterate_regression(TENSOR_SPECIFICATION: hyweb_pb2.Tensor, MAX_DEGREE: int, 
         #  The CopyFrom method checks the package name, so it thinks that are different messages. But we know
         #  that it's not true.
         tensor.model.ParseFromString(
-            solver_regression(solver = solver_data.data, MAX_DEGREE = MAX_DEGREE).SerializeToString()
+            solver_regression(
+                    solver = solver_data.data, 
+                    MAX_DEGREE = MAX_DEGREE, 
+                    LOGGER = LOGGER
+                ).SerializeToString()
             )
         onnx.tensor.append( tensor )
         LOGGER(' ****** ')
