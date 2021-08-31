@@ -54,7 +54,10 @@ if __name__ == "__main__":
 
         def GetTensor(self, request, context):
             while True:
-                yield _regresion.get_tensor()
+                try:
+                    yield _regresion.get_tensor()
+                except:
+                    Exception('Wait more for it, tensor is not ready yet.')
                 sleep(ENVS['TIME_FOR_EACH_REGRESSION_LOOP'])
         
         # Hasta que se implemente AddTensor.

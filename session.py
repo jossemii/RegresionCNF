@@ -40,7 +40,10 @@ class Session(metaclass=Singleton):
     # Return the tensor for the grpc stream method.
     def get_tensor(self) -> onnx_pb2.ONNX:
         # No hay condiciones de carrera aunque lo reescriba en ese momento.
-        return self.onnx
+        if self.onnx:
+            return self.onnx
+        else:
+            raise Exception
     
     # Hasta que se implemente AddTensor en el clasificador.
     def get_data_set(self) -> solvers_dataset_pb2.DataSet:
