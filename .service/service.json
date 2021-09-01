@@ -4,6 +4,7 @@
     "entrypoint": "python3 /regresioncnf/start.py",
     "envs": [
         "MAX_REGRESSION_DEGREE",
-        "TIME_FOR_EACH_REGRESSION_LOOP"
+        "TIME_FOR_EACH_REGRESSION_LOOP",
+        "MAX_WORKERS"
     ]
 }

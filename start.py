@@ -1,10 +1,12 @@
 import logging
 from session import Session
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
-LOGGER = lambda message: logging.getLogger().debug(message + '\n')
+#LOGGER = lambda message: logging.getLogger().debug(message + '\n')
+LOGGER = lambda message: print(message + '\n')
 
-DIR = '/randomcnf/'
+DIR = '' #'/regresioncnf/'
 ENVS = {
+    'MAX_WORKERS': 5,
     'MAX_REGRESSION_DEGREE': 100,
     'TIME_FOR_EACH_REGRESSION_LOOP': 900,
 }
@@ -45,20 +47,23 @@ if __name__ == "__main__":
     class RegresionServicer(regresion_pb2_grpc.RegresionServicer):
 
         def StreamLogs(self, request, context):
+            if hasattr(self.StreamLogs, 'has_been_called'): 
+                raise Exception('Only can call this method once.')
+            else: 
+                self.StreamLogs.__func__.has_been_called = True
             with open('app.log') as file:
                 while True:
-                    f = regresion_pb2.File()
-                    f.file = file.read()
-                    yield f
-                    sleep(1)
+                    try:
+                        f = regresion_pb2.File()
+                        f.file = next(file)
+                        yield f
+                    except: pass
 
         def GetTensor(self, request, context):
-            while True:
-                try:
-                    yield _regresion.get_tensor()
-                except:
-                    Exception('Wait more for it, tensor is not ready yet.')
-                sleep(ENVS['TIME_FOR_EACH_REGRESSION_LOOP'])
+            try:
+                return _regresion.get_tensor()
+            except:
+                Exception('Wait more for it, tensor is not ready yet.')
         
         # Hasta que se implemente AddTensor.
         def GetDataSet(self, request, context):
@@ -70,7 +75,7 @@ if __name__ == "__main__":
 
 
     # create a gRPC server
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=ENVS['MAX_WORKERS']))
 
     regresion_pb2_grpc.add_RegresionServicer_to_server(
         RegresionServicer(), server)

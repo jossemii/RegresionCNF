@@ -21,7 +21,7 @@ class RegresionStub(object):
                 request_serializer=regresion__pb2.Empty.SerializeToString,
                 response_deserializer=regresion__pb2.File.FromString,
                 )
-        self.GetTensor = channel.unary_stream(
+        self.GetTensor = channel.unary_unary(
                 '/Regresion/GetTensor',
                 request_serializer=regresion__pb2.Empty.SerializeToString,
                 response_deserializer=onnx__pb2.ONNX.FromString,
@@ -74,7 +74,7 @@ def add_RegresionServicer_to_server(servicer, server):
                     request_deserializer=regresion__pb2.Empty.FromString,
                     response_serializer=regresion__pb2.File.SerializeToString,
             ),
-            'GetTensor': grpc.unary_stream_rpc_method_handler(
+            'GetTensor': grpc.unary_unary_rpc_method_handler(
                     servicer.GetTensor,
                     request_deserializer=regresion__pb2.Empty.FromString,
                     response_serializer=onnx__pb2.ONNX.SerializeToString,
@@ -127,7 +127,7 @@ class Regresion(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_stream(request, target, '/Regresion/GetTensor',
+        return grpc.experimental.unary_unary(request, target, '/Regresion/GetTensor',
             regresion__pb2.Empty.SerializeToString,
             onnx__pb2.ONNX.FromString,
             options, channel_credentials,
