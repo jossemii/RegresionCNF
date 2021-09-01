@@ -1,10 +1,9 @@
 import logging
 from session import Session
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
-#LOGGER = lambda message: logging.getLogger().debug(message + '\n')
-LOGGER = lambda message: print(message + '\n')
+LOGGER = lambda message: logging.getLogger().debug(message + '\n')
 
-DIR = '' #'/regresioncnf/'
+DIR = '/regresioncnf/'
 ENVS = {
     'MAX_WORKERS': 5,
     'MAX_REGRESSION_DEGREE': 100,
@@ -20,22 +19,19 @@ SHA3_256 = lambda value: "" if value is None else hashlib.sha3_256(value).digest
 if __name__ == "__main__":
 
     from time import sleep
-    import grpc, regresion_pb2, regresion_pb2_grpc
+    import grpc, regresion_pb2, regresion_pb2_grpc, hyweb_pb2
     from concurrent import futures
     
     # Read __config__ file.
-    """
-    config = api_pb2.hyweb__pb2.ConfigurationFile()
+    config = hyweb_pb2.ConfigurationFile()
     config.ParseFromString(
         open('/__config__', 'rb').read()
     )    
-
 
     for env_var in config.config.enviroment_variables:
         ENVS[env_var] = type(ENVS[env_var])(
             config.config.enviroment_variables[env_var].value
             )    
-    """
       
     _regresion = Session(
         ENVS = ENVS, 
