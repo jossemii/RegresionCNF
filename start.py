@@ -1,25 +1,40 @@
 import logging
-from session import Session
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 LOGGER = lambda message: logging.getLogger().debug(message + '\n')
 
 DIR = '/regresioncnf/'
 ENVS = {
-    'MAX_WORKERS': 5,
     'MAX_REGRESSION_DEGREE': 100,
-    'TIME_FOR_EACH_REGRESSION_LOOP': 900,
 }
 
-import hashlib
-# -- The service use sha3-256 for identify internal objects. --
-SHA3_256_ID = bytes.fromhex("a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
-SHA3_256 = lambda value: "" if value is None else hashlib.sha3_256(value).digest()
+def generate_tensor_spec():
+    # Performance
+    p = hyweb_pb2.Tensor.Index()
+    p.id = "score"
+    p.hashtag.tag.extend(["performance"])
+    # Number clauses
+    c = hyweb_pb2.Tensor.Index()
+    c.id = "clauses"
+    c.hashtag.tag.extend(["number of clauses"])
+    # Number of literals
+    l = hyweb_pb2.Tensor.Index()
+    l.id = "literals"
+    l.hashtag.tag.extend(["number of literals"])
+    # Solver services
+    s = hyweb_pb2.Tensor.Index()
+    s.id = "solver"
+    s.hashtag.tag.extend(["SATsolver"])
+    with open(DIR + '.service/solver.field', 'rb') as f:
+        s.field.ParseFromString(f.read())
 
+    tensor_specification = hyweb_pb2.Tensor()
+    tensor_specification.index.extend([c, l, s, p])
+    tensor_specification.rank = 3
+    return tensor_specification
 
 if __name__ == "__main__":
 
-    from time import sleep
-    import grpc, regresion_pb2, regresion_pb2_grpc, hyweb_pb2
+    import grpc, regresion_pb2, regresion_pb2_grpc, hyweb_pb2, regresion
     from concurrent import futures
     
     # Read __config__ file.
@@ -28,17 +43,12 @@ if __name__ == "__main__":
         open('/__config__', 'rb').read()
     )    
 
+    """
     for env_var in config.config.enviroment_variables:
         ENVS[env_var] = type(ENVS[env_var])(
             config.config.enviroment_variables[env_var].value
             )    
-      
-    _regresion = Session(
-        ENVS = ENVS, 
-        DIR = DIR, 
-        LOGGER = LOGGER, 
-        SHA3_256 = SHA3_256
-        )
+    """
 
     class RegresionServicer(regresion_pb2_grpc.RegresionServicer):
 
@@ -55,23 +65,17 @@ if __name__ == "__main__":
                         yield f
                     except: pass
 
-        def GetTensor(self, request, context):
-            try:
-                return _regresion.get_tensor()
-            except:
-                Exception('Wait more for it, tensor is not ready yet.')
-        
-        # Hasta que se implemente AddTensor.
-        def GetDataSet(self, request, context):
-            return _regresion.get_data_set()
-
-        def AddDataSet(self, request, context):
-            _regresion.add_data(new_data_set = request)
-            return regresion_pb2.Empty()
+        def MakeRegresion(self, request, context):
+            return regresion.iterate_regression(
+                TENSOR_SPECIFICATION = generate_tensor_spec(),
+                data_set = request,
+                MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
+                LOGGER = LOGGER
+            )
 
 
     # create a gRPC server
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=ENVS['MAX_WORKERS']))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers = 2)) # One for regresion and the other for stream logs.
 
     regresion_pb2_grpc.add_RegresionServicer_to_server(
         RegresionServicer(), server)
