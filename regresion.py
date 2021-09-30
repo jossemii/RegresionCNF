@@ -63,7 +63,11 @@ def iterate_regression(TENSOR_SPECIFICATION: hyweb_pb2.Tensor, MAX_DEGREE: int, 
         LOGGER('SOLVER --> ' + str(solver_data.solver.definition))
         # ONNXTensor
         tensor = onnx_pb2.ONNX.ONNXTensor()
-        tensor.element.value = solver_data.solver.SerializeToString()
+        tensor.element.append(
+            onnx_pb2.celaut__pb2.Any(   # Non-scalar element (SAT-solver)
+                value = solver_data.solver.SerializeToString()
+            )
+        )
         # We need to serialize and parse the buffer because the clases are provided by different proto files.
         #  It is because import the onnx-ml.proto on skl2onnx lib to our onnx.proto was impossible.
         #  The CopyFrom method checks the package name, so it thinks that are different messages. But we know

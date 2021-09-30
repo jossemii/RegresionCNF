@@ -11,19 +11,19 @@ def generate_tensor_spec():
     # Performance
     p = hyweb_pb2.Tensor.Index()
     p.id = "score"
-    p.hashtag.tag.extend(["performance"])
+    p.metadata.tag.extend(["performance"])
     # Number clauses
     c = hyweb_pb2.Tensor.Index()
     c.id = "clauses"
-    c.hashtag.tag.extend(["number of clauses"])
+    c.metadata.tag.extend(["number of clauses"])
     # Number of literals
     l = hyweb_pb2.Tensor.Index()
     l.id = "literals"
-    l.hashtag.tag.extend(["number of literals"])
+    l.metadata.tag.extend(["number of literals"])
     # Solver services
     s = hyweb_pb2.Tensor.Index()
     s.id = "solver"
-    s.hashtag.tag.extend(["SATsolver"])
+    s.metadata.tag.extend(["SATsolver"])
     with open(DIR + '.service/solver.field', 'rb') as f:
         s.field.ParseFromString(f.read())
 
