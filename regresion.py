@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import Int64TensorType
-import solvers_dataset_pb2, onnx_pb2, hyweb_pb2
+import solvers_dataset_pb2, onnx_pb2, celaut_pb2
 
 # Update the tensor with the dataset.
 def regression_with_degree(degree: int, input: np.array, output: np.array):
@@ -51,7 +51,12 @@ def solver_regression(solver: dict, MAX_DEGREE, LOGGER: LambdaType):
         ]
     )
 
-def iterate_regression(TENSOR_SPECIFICATION: hyweb_pb2.Tensor, MAX_DEGREE: int, data_set: solvers_dataset_pb2.DataSet, LOGGER: LambdaType) -> onnx_pb2.ONNX:
+def iterate_regression(
+        TENSOR_SPECIFICATION: celaut_pb2.Service.Tensor, 
+        MAX_DEGREE: int, 
+        data_set: solvers_dataset_pb2.DataSet, 
+        LOGGER: LambdaType
+    ) -> onnx_pb2.ONNX:
     LOGGER('ITERATING REGRESSION')
     onnx = onnx_pb2.ONNX()
     onnx.specification.CopyFrom(TENSOR_SPECIFICATION)
@@ -64,10 +69,9 @@ def iterate_regression(TENSOR_SPECIFICATION: hyweb_pb2.Tensor, MAX_DEGREE: int, 
         # ONNXTensor
         tensor = onnx_pb2.ONNX.ONNXTensor()
         tensor.element.append(
-            onnx_pb2.celaut__pb2.Any(   # Non-scalar element (SAT-solver)
-                value = solver_data.solver.SerializeToString()
-            )
+            solver_data.solver.SerializeToString()
         )
+
         # We need to serialize and parse the buffer because the clases are provided by different proto files.
         #  It is because import the onnx-ml.proto on skl2onnx lib to our onnx.proto was impossible.
         #  The CopyFrom method checks the package name, so it thinks that are different messages. But we know

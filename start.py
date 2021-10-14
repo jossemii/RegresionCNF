@@ -8,40 +8,30 @@ ENVS = {
 }
 
 def generate_tensor_spec():
-    # Performance
-    p = hyweb_pb2.Tensor.Index()
-    p.id = "score"
-    p.metadata.tag.extend(["performance"])
-    # Number clauses
-    c = hyweb_pb2.Tensor.Index()
-    c.id = "clauses"
-    c.metadata.tag.extend(["number of clauses"])
-    # Number of literals
-    l = hyweb_pb2.Tensor.Index()
-    l.id = "literals"
-    l.metadata.tag.extend(["number of literals"])
-    # Solver services
-    s = hyweb_pb2.Tensor.Index()
-    s.id = "solver"
-    s.metadata.tag.extend(["SATsolver"])
     with open(DIR + '.service/solver.field', 'rb') as f:
         s.field.ParseFromString(f.read())
 
-    tensor_specification = hyweb_pb2.Tensor()
-    tensor_specification.index.extend([c, l, s, p])
-    tensor_specification.rank = 3
+    tensor_specification = celaut_pb2.Service.Tensor(
+        rank = 3,
+        index = {
+            'Score': celaut_pb2.FieldDef(),
+            'NumOfClauses': celaut_pb2.FieldDef(),
+            'NumOfLiterals': celaut_pb2.FieldDef(),
+            'Solver': celaut_pb2.FieldDef()            
+        }
+    )
     return tensor_specification
 
 if __name__ == "__main__":
 
-    import grpc, regresion_pb2, regresion_pb2_grpc, hyweb_pb2, regresion
+    import grpc, regresion_pb2, regresion_pb2_grpc, celaut_pb2, regresion
     from concurrent import futures
     
     # Read __config__ file.
-    config = hyweb_pb2.ConfigurationFile()
-    config.ParseFromString(
+    config = celaut_pb2.ConfigurationFile()
+    config.ParseFromString( 
         open('/__config__', 'rb').read()
-    )    
+    )
 
     """
     for env_var in config.config.enviroment_variables:

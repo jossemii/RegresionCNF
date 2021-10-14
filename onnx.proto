@@ -14,7 +14,7 @@ package tensor_onnx;
 message ONNX {
   required celaut.Tensor specification = 1;
   message ONNXTensor {
-      repeated celaut.Any element = 1;
+      repeated bytes element = 1;
       required ModelProto model = 2;
   }
   repeated ONNXTensor tensor = 2;
