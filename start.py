@@ -14,10 +14,10 @@ def generate_tensor_spec():
     tensor_specification = celaut_pb2.Service.Tensor(
         rank = 3,
         index = {
-            'Score': celaut_pb2.FieldDef(),
-            'NumOfClauses': celaut_pb2.FieldDef(),
-            'NumOfLiterals': celaut_pb2.FieldDef(),
-            'Solver': celaut_pb2.FieldDef()            
+            'Score': celaut_pb2.FieldDef(), # TODO
+            'NumOfClauses': celaut_pb2.FieldDef(), # TODO
+            'NumOfLiterals': celaut_pb2.FieldDef(), # TODO
+            'Solvers': celaut_pb2.FieldDef()  # TODO           
         }
     )
     return tensor_specification
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     """
     for env_var in config.config.enviroment_variables:
         ENVS[env_var] = type(ENVS[env_var])(
-            config.config.enviroment_variables[env_var].value
+            config.config.enviroment_variables[env_var]
             )    
     """
 
