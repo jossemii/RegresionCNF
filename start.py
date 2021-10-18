@@ -7,21 +7,6 @@ ENVS = {
     'MAX_REGRESSION_DEGREE': 100,
 }
 
-def generate_tensor_spec():
-    with open(DIR + '.service/solver.field', 'rb') as f:
-        s.field.ParseFromString(f.read())
-
-    tensor_specification = celaut_pb2.Service.Tensor(
-        rank = 3,
-        index = {
-            'Score': celaut_pb2.FieldDef(), # TODO
-            'NumOfClauses': celaut_pb2.FieldDef(), # TODO
-            'NumOfLiterals': celaut_pb2.FieldDef(), # TODO
-            'Solvers': celaut_pb2.FieldDef()  # TODO           
-        }
-    )
-    return tensor_specification
-
 if __name__ == "__main__":
 
     import grpc, regresion_pb2, regresion_pb2_grpc, celaut_pb2, regresion
@@ -57,7 +42,6 @@ if __name__ == "__main__":
 
         def MakeRegresion(self, request, context):
             return regresion.iterate_regression(
-                TENSOR_SPECIFICATION = generate_tensor_spec(),
                 data_set = request,
                 MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
                 LOGGER = LOGGER

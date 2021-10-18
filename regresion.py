@@ -4,7 +4,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from skl2onnx import convert_sklearn
 from skl2onnx.common.data_types import Int64TensorType
-import solvers_dataset_pb2, onnx_pb2, celaut_pb2
+import solvers_dataset_pb2, regresion_pb2, celaut_pb2
 
 # Update the tensor with the dataset.
 def regression_with_degree(degree: int, input: np.array, output: np.array):
@@ -52,38 +52,34 @@ def solver_regression(solver: dict, MAX_DEGREE, LOGGER: LambdaType):
     )
 
 def iterate_regression(
-        TENSOR_SPECIFICATION: celaut_pb2.Service.Tensor, 
         MAX_DEGREE: int, 
         data_set: solvers_dataset_pb2.DataSet, 
         LOGGER: LambdaType
-    ) -> onnx_pb2.ONNX:
+    ) -> regresion_pb2.Tensor:
     LOGGER('ITERATING REGRESSION')
-    onnx = onnx_pb2.ONNX()
-    onnx.specification.CopyFrom(TENSOR_SPECIFICATION)
+    onnx = regresion_pb2.Tensor()
 
     # Make regression for each solver.
-    for solver_data in data_set.data.values():
+    for solver_config_id, solver_data in data_set.data.items():
         # Si hemos tomado menos de cinco ejemplos, podemos esperar a la siguiente iteración.
         if len(solver_data.data) < 5: break
-        LOGGER('SOLVER --> ' + str(solver_data.solver.definition))
+        LOGGER('SOLVER --> ' + str(solver_config_id))
         # ONNXTensor
-        tensor = onnx_pb2.ONNX.ONNXTensor()
-        tensor.element.append(
-            solver_data.solver.SerializeToString()
-        )
+        tensor = regresion_pb2.Tensor.NonEscalarDimension.NonEscalar()
+        tensor.element = solver_config_id
 
         # We need to serialize and parse the buffer because the clases are provided by different proto files.
         #  It is because import the onnx-ml.proto on skl2onnx lib to our onnx.proto was impossible.
         #  The CopyFrom method checks the package name, so it thinks that are different messages. But we know
         #  that it's not true.
-        tensor.model.ParseFromString(
+        tensor.escalar.ParseFromString(
             solver_regression(
                     solver = solver_data.data, 
                     MAX_DEGREE = MAX_DEGREE, 
                     LOGGER = LOGGER
                 ).SerializeToString()
             )
-        onnx.tensor.append( tensor )
+        onnx.non_escalar.non_escalar.append( tensor )
         LOGGER(' ****** ')
 
     return onnx
