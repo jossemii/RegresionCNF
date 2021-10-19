@@ -1,4 +1,5 @@
-import logging
+import logging, utils
+from solvers_dataset_pb2 import DataSet
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 LOGGER = lambda message: logging.getLogger().debug(message + '\n')
 
@@ -33,18 +34,22 @@ if __name__ == "__main__":
             else: 
                 self.StreamLogs.__func__.has_been_called = True
             with open('app.log') as file:
-                while True:
-                    try:
-                        f = regresion_pb2.File()
-                        f.file = next(file)
-                        yield f
-                    except: pass
+                yield utils.serialize_to_buffer(
+                    regresion_pb2.File(
+                        file = file.read()
+                    )
+                )
 
-        def MakeRegresion(self, request, context):
-            return regresion.iterate_regression(
-                data_set = request,
-                MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
-                LOGGER = LOGGER
+        def MakeRegresion(self, request_iterator, context):
+            yield utils.serialize_to_buffer(
+                regresion.iterate_regression(
+                    data_set = utils.parse_from_buffer(
+                        request_iterator = request_iterator,
+                        message_field = DataSet
+                    )[0],
+                    MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
+                    LOGGER = LOGGER
+                )
             )
 
 
