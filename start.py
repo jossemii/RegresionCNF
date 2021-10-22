@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     class RegresionServicer(regresion_pb2_grpc.RegresionServicer):
 
-        def StreamLogs(self, request, context):
+        def StreamLogs(self, request_iterator, context):
             if hasattr(self.StreamLogs, 'has_been_called'): 
                 raise Exception('Only can call this method once.')
             else: 
@@ -42,14 +42,14 @@ if __name__ == "__main__":
 
         def MakeRegresion(self, request_iterator, context):
             yield utils.serialize_to_buffer(
-                regresion.iterate_regression(
-                    data_set = utils.parse_from_buffer(
-                        request_iterator = request_iterator,
-                        message_field = DataSet
-                    )[0],
-                    MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
-                    LOGGER = LOGGER
-                )
+                    regresion.iterate_regression(
+                        data_set = next(utils.parse_from_buffer(
+                            request_iterator = request_iterator,
+                            message_field = DataSet
+                        )),
+                        MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
+                        LOGGER = LOGGER
+                    )
             )
 
 
