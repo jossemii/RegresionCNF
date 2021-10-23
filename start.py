@@ -41,7 +41,7 @@ if __name__ == "__main__":
                 )
 
         def MakeRegresion(self, request_iterator, context):
-            yield utils.serialize_to_buffer(
+            for b in utils.serialize_to_buffer(
                     regresion.iterate_regression(
                         data_set = next(utils.parse_from_buffer(
                             request_iterator = request_iterator,
@@ -50,7 +50,7 @@ if __name__ == "__main__":
                         MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
                         LOGGER = LOGGER
                     )
-            )
+            ): yield b
 
 
     # create a gRPC server
