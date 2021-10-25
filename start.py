@@ -34,11 +34,11 @@ if __name__ == "__main__":
             else: 
                 self.StreamLogs.__func__.has_been_called = True
             with open('app.log') as file:
-                yield utils.serialize_to_buffer(
+                for b in utils.serialize_to_buffer(
                     regresion_pb2.File(
                         file = file.read()
                     )
-                )
+                ): yield b
 
         def MakeRegresion(self, request_iterator, context):
             for b in utils.serialize_to_buffer(
