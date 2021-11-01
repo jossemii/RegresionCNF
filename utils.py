@@ -29,7 +29,7 @@ class Signal():
             with self.condition:
                 self.condition.wait()
 
-def get_file_chunks(filename, signal = Signal(exist=False)) -> Generator[gateway_pb2.Buffer, None, None]:
+def get_file_chunks(filename, signal = Signal(exist=False)) -> Generator[regresion_pb2.Buffer, None, None]:
     signal.wait()
     try:
         with open(filename, 'rb', buffering = CHUNK_SIZE) as f:
@@ -38,7 +38,7 @@ def get_file_chunks(filename, signal = Signal(exist=False)) -> Generator[gateway
                 signal.wait()
                 piece = f.read(CHUNK_SIZE)
                 if len(piece) == 0: return
-                yield gateway_pb2.Buffer(chunk=piece)
+                yield regresion_pb2.Buffer(chunk=piece)
     finally: 
         gc.collect()
 
@@ -79,16 +79,16 @@ def serialize_to_buffer(message_iterator, signal = Signal(exist=False), cache_di
     for message in message_iterator:
         if type(message) is tuple:
             try:
-                yield gateway_pb2.Buffer(
+                yield regresion_pb2.Buffer(
                     head = indices[message[1]]
                 )
             except:
-                yield gateway_pb2.Buffer(head = 1)
+                yield regresion_pb2.Buffer(head = 1)
             
             for b in get_file_chunks(filename = message[0], signal = signal):
                 yield b
             
-            yield gateway_pb2.Buffer(separator = True)
+            yield regresion_pb2.Buffer(separator = True)
 
         else: # if message is a protobuf object.
             try:
@@ -100,7 +100,7 @@ def serialize_to_buffer(message_iterator, signal = Signal(exist=False), cache_di
             if len(message_bytes) < CHUNK_SIZE:
                 signal.wait()
                 try:
-                    yield gateway_pb2.Buffer(
+                    yield regresion_pb2.Buffer(
                         chunk = bytes(message_bytes),
                         head = head,
                         separator = True
@@ -109,7 +109,7 @@ def serialize_to_buffer(message_iterator, signal = Signal(exist=False), cache_di
 
             else:
                 try:
-                    yield gateway_pb2.Buffer(
+                    yield regresion_pb2.Buffer(
                         head = head
                     )
                 finally: signal.wait()
@@ -131,7 +131,7 @@ def serialize_to_buffer(message_iterator, signal = Signal(exist=False), cache_di
                     except: pass
 
                 try:
-                    yield gateway_pb2.Buffer(
+                    yield regresion_pb2.Buffer(
                         separator = True
                     )
                 finally: signal.wait()
