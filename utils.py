@@ -1,7 +1,7 @@
 # GrpcBigBuffer.
 CHUNK_SIZE = 1024 * 1024  # 1MB
 import os, shutil, gc
-import gateway_pb2
+import regresion_pb2
 from random import randint
 from typing import Generator
 from threading import Condition
