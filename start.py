@@ -45,7 +45,8 @@ if __name__ == "__main__":
                     message_iterator=regresion.iterate_regression(
                         data_set = next(grpcbigbuffer.parse_from_buffer(
                             request_iterator = request_iterator,
-                            indices = DataSet
+                            indices = DataSet,
+                            partitions_message_mode = True,
                         )),
                         MAX_DEGREE = ENVS['MAX_REGRESSION_DEGREE'],
                         LOGGER = LOGGER
