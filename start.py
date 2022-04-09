@@ -12,12 +12,19 @@ if __name__ == "__main__":
 
     import grpc, regresion_pb2, regresion_pb2_grpc, celaut_pb2, regresion
     from concurrent import futures
+    import gas_manager
     
     # Read __config__ file.
     config = celaut_pb2.ConfigurationFile()
     config.ParseFromString( 
         open('/__config__', 'rb').read()
     )
+
+    gas_manager.GasManager().put_initial_ram_pool(
+        mem_limit = config.initial_sysresources.mem_limit
+    )
+
+    print('CONFIGURATION FILE INITIAL MEMORY LIMIT IS -> ', gas_manager.GasManager().get_ram_pool())
 
     """
     for env_var in config.config.enviroment_variables:

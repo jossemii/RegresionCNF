@@ -1,4 +1,6 @@
 from types import LambdaType
+from gas_manager import GasManager
+from iobigdata import IOBigData
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
@@ -56,30 +58,34 @@ def iterate_regression(
         data_set: solvers_dataset_pb2.DataSet, 
         LOGGER: LambdaType
     ) -> regresion_pb2.Tensor:
+
     LOGGER('ITERATING REGRESSION')
     onnx = regresion_pb2.Tensor()
+    
+    with IOBigData().lock(len = 0.7* GasManager().get_ram_pool()):
 
-    # Make regression for each solver.
-    for solver_config_id, solver_data in data_set.data.items():
-        # Si hemos tomado menos de cinco ejemplos, podemos esperar a la siguiente iteración.
-        if len(solver_data.data) < 5: break
-        LOGGER('SOLVER --> ' + str(solver_config_id))
-        # ONNXTensor
-        tensor = regresion_pb2.Tensor.NonEscalarDimension.NonEscalar()
-        tensor.element = solver_config_id
+        # Make regression for each solver.
+        for solver_config_id, solver_data in data_set.data.items():
+            # Si hemos tomado menos de cinco ejemplos, podemos esperar a la siguiente iteración.
+            if len(solver_data.data) < 5: break
+            LOGGER('SOLVER --> ' + str(solver_config_id))
+            # ONNXTensor
+            tensor = regresion_pb2.Tensor.NonEscalarDimension.NonEscalar()
+            tensor.element = solver_config_id
 
-        # We need to serialize and parse the buffer because the clases are provided by different proto files.
-        #  It is because import the onnx-ml.proto on skl2onnx lib to our onnx.proto was impossible.
-        #  The CopyFrom method checks the package name, so it thinks that are different messages. But we know
-        #  that it's not true.
-        tensor.escalar.ParseFromString(
-            solver_regression(
-                    solver = solver_data.data, 
-                    MAX_DEGREE = MAX_DEGREE, 
-                    LOGGER = LOGGER
-                ).SerializeToString()
-            )
-        onnx.non_escalar.non_escalar.append( tensor )
-        LOGGER(' ****** ')
-
+            # We need to serialize and parse the buffer because the clases are provided by different proto files.
+            #  It is because import the onnx-ml.proto on skl2onnx lib to our onnx.proto was impossible.
+            #  The CopyFrom method checks the package name, so it thinks that are different messages. But we know
+            #  that it's not true.
+            tensor.escalar.ParseFromString(
+                solver_regression(
+                        solver = solver_data.data, 
+                        MAX_DEGREE = MAX_DEGREE, 
+                        LOGGER = LOGGER
+                    ).SerializeToString()
+                )
+            onnx.non_escalar.non_escalar.append( tensor )
+            LOGGER(' ****** ')
+    
+    LOGGER(' *** DO IT *** ')
     return onnx
