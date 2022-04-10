@@ -1,5 +1,6 @@
 import logging, grpcbigbuffer
-from iobigdata import IOBigData
+from iobigdata import IOBigData, mem_manager
+import grpcbigbuffer as grpcbf
 from solvers_dataset_pb2 import DataSet
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s %(levelname)-8s %(message)s')
 LOGGER = lambda message: logging.getLogger().debug(message + '\n')
@@ -26,6 +27,8 @@ if __name__ == "__main__":
     )
 
     IOBigData().set_log(log = LOGGER)
+
+    grpcbf.modify_env(mem_manager=mem_manager)
 
     LOGGER('CONFIGURATION FILE INITIAL MEMORY LIMIT IS -> ', gas_manager.GasManager().get_ram_pool())
 
