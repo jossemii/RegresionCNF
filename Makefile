@@ -8,5 +8,5 @@ python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. regresion.pr
 python3 -m grpc_tools.protoc -I. --python_out=. solvers_dataset.proto --experimental_allow_proto3_optional
 
 # Pyarmor
-pyarmor pack start.py
+pyarmor obfuscate start.py
 mv dist .service
