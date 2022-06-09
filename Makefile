@@ -10,3 +10,7 @@ python3 -m grpc_tools.protoc -I. --python_out=. solvers_dataset.proto --experime
 # Pyarmor
 pyarmor obfuscate start.py
 mv dist .service
+
+# Generate .service.zip
+cd .service
+zip -r -j .service.zip .service/
