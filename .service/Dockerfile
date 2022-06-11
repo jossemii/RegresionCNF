@@ -10,4 +10,4 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
   apt-get -y install cmake protobuf-compiler libprotoc-dev && \
   pip3 install sklearn numpy scikit-learn skl2onnx
 
-COPY dist /regresioncnf/
+COPY src /regresioncnf/
