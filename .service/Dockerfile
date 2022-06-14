@@ -11,7 +11,4 @@ RUN export DEBIAN_FRONTEND=noninteractive && export CMAKE_ARGS="-DONNX_USE_PROTO
   apt-get -y install cmake protobuf-compiler libprotoc-dev && \
   pip3 install sklearn numpy>=1.16.6 scikit-learn onnx skl2onnx
 
-RUN mkdir /regresioncnf && cd /regresioncnf && \
-  apt-get update && apt-get -y install git && \
-  git clone --branch main https://github.com/jossemii/RegresionCNF.git && mv RegresionCNF/* . && \
-  mv RegresionCNF/.service/ . && rm -rf RegresionCNF  && rm -rf .git
+COPY src /regresioncnf
