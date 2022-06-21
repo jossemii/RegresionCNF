@@ -9,6 +9,6 @@ RUN apt-get update --fix-missing && \
 RUN export DEBIAN_FRONTEND=noninteractive && export CMAKE_ARGS="-DONNX_USE_PROTOBUF_SHARED_LIBS=ON" && \
   apt-get update --fix-missing && \
   apt-get -y install cmake protobuf-compiler libprotoc-dev && \
-  pip3 install sklearn numpy>=1.16.6 scikit-learn onnx skl2onnx
+  pip3 install sklearn numpy>=1.16.6 scikit-learn skl2onnx
 
 COPY src /regresioncnf
